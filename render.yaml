@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: glam-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: EVOLUTION_API_URL
+        value: https://evolution-api-production-17af.up.railway.app
+      - key: EVOLUTION_API_KEY
+        sync: false
+      - key: EVOLUTION_INSTANCE
+        value: glam-bot
+      - key: ADMIN_WHATSAPP
+        sync: false

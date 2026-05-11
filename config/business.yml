@@ -1,0 +1,81 @@
+business:
+  name: "Glam by Fatima"
+  tagline: "Makeup · Nails · Hair · Lashes"
+  owner_name: "Fatima"
+  whatsapp_number: "2348100000000"  # The business WhatsApp number (with country code, no +)
+
+hours:
+  monday: "9am - 7pm"
+  tuesday: "9am - 7pm"
+  wednesday: "9am - 7pm"
+  thursday: "9am - 7pm"
+  friday: "9am - 7pm"
+  saturday: "9am - 7pm"
+  sunday: "By appointment only"
+
+services:
+  - name: "Full glam makeup"
+    price: 25000
+    duration_hours: 2
+    emoji: "💄"
+
+  - name: "Soft glam / everyday makeup"
+    price: 18000
+    duration_hours: 1.5
+    emoji: "💄"
+
+  - name: "Bridal makeup"
+    price: 45000
+    duration_hours: 3
+    emoji: "👰"
+
+  - name: "Nail extensions (full set)"
+    price: 12000
+    duration_hours: 2
+    emoji: "💅"
+
+  - name: "Nail art (per nail)"
+    price: 800
+    duration_hours: 1
+    emoji: "💅"
+
+  - name: "Hair braiding"
+    price: 8000
+    duration_hours: 2.5
+    emoji: "💇"
+
+  - name: "Lash application"
+    price: 5000
+    duration_hours: 1
+    emoji: "👁"
+
+# Set available dates here — format: YYYY-MM-DD
+# Remove a date to mark it as unavailable
+availability:
+  - "2026-05-09"
+  - "2026-05-10"
+  - "2026-05-12"
+  - "2026-05-13"
+  - "2026-05-15"
+  - "2026-05-16"
+  - "2026-05-19"
+  - "2026-05-20"
+  - "2026-05-22"
+  - "2026-05-23"
+  - "2026-05-26"
+  - "2026-05-27"
+  - "2026-05-29"
+  - "2026-05-30"
+
+faqs:
+  - question: "Do you come to my location?"
+    answer: "Yes! Home service is available within Lagos. An additional travel fee of ₦3,000 – ₦5,000 applies depending on your location."
+
+  - question: "Do I need to bring anything?"
+    answer: "No, we bring everything! Just come with a clean face if you're booking makeup. For nails, remove any old polish beforehand."
+
+  - question: "How do I pay?"
+    answer: "We accept bank transfer and cash. A 50% deposit is required to confirm your booking."
+
+  - question: "Can I reschedule?"
+    answer: "Yes! Please reschedule at least 24 hours before your appointment. Last-minute cancellations forfeit the deposit."
