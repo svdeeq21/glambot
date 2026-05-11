@@ -67,6 +67,26 @@ availability:
   - "2026-05-29"
   - "2026-05-30"
 
+# Referral tags - only messages starting with one of these tags trigger the bot
+# on first contact. Use these in click-to-chat ad links:
+#   wa.me/2349035144812?text=GLAM-IG  (Instagram ads)
+#   wa.me/2349035144812?text=GLAM-FB  (Facebook ads)
+#   wa.me/2349035144812?text=GLAM-TT  (TikTok ads)
+#   wa.me/2349035144812?text=GLAM-WEB (Website button)
+#   wa.me/2349035144812?text=GLAM-REF (Word-of-mouth referral)
+referral_tags:
+  - "GLAM-IG"
+  - "GLAM-FB"
+  - "GLAM-TT"
+  - "GLAM-WEB"
+  - "GLAM-REF"
+  - "GLAM-HOOZE"   # Hooze referral tracking
+
+# Whitelist - these numbers can ALWAYS message the bot (no tag needed)
+# Useful for testing or owner's own test number
+whitelist:
+  - "2349150754870"   # Sadiq's test number
+
 faqs:
   - question: "Do you come to my location?"
     answer: "Yes! Home service is available within Lagos. An additional travel fee of ₦3,000 – ₦5,000 applies depending on your location."

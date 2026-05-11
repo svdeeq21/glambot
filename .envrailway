@@ -1,0 +1,12 @@
+SERVER_URL=evolution-api-production-c128.up.railway.app
+AUTHENTICATION_TYPE=apikey
+AUTHENTICATION_API_KEY=glam-bot-2026
+DATABASE_PROVIDER=postgresql
+DATABASE_CONNECTION_URI=postgresql://postgres:password@postgres.railway.internal:5432/railway
+CACHE_REDIS_ENABLED=true
+CACHE_REDIS_URI=redis://default:password@redis.railway.internal:6379
+CACHE_REDIS_PREFIX_KEY=evolution
+DEL_INSTANCE_ON_CLOSE=false
+QRCODE_LIMIT=30
+LOG_LEVEL=ERROR
+redis://default:xbBROEMneDKcQMrWWTalazohOcgIlWKT@redis.railway.internal:6379

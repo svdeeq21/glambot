@@ -3,9 +3,13 @@ from fastapi import APIRouter, Request, HTTPException
 from app.services.pipeline import process_message
 from app.services.whatsapp import send_text
 from app.core.config import settings, business
+from app.core.leads import is_verified, verify, check_referral_tag, init_verified
 
 logger = logging.getLogger("glam-bot")
 router = APIRouter()
+
+# Pre-load whitelist on import
+init_verified()
 
 
 @router.get("/health")
@@ -29,13 +33,28 @@ async def whatsapp_webhook(request: Request):
     message = data.get("message", {})
     key = data.get("key", {})
 
-    # Ignore messages sent by the bot itself
+    # ─── Filter 1: Ignore messages sent by the bot itself ──────────
     if key.get("fromMe", False):
-        return {"status": "ignored"}
+        return {"status": "ignored_fromme"}
 
-    phone = key.get("remoteJid", "").replace("@s.whatsapp.net", "")
-    if not phone:
-        return {"status": "ignored"}
+    remote_jid = key.get("remoteJid", "")
+    if not remote_jid:
+        return {"status": "ignored_no_jid"}
+
+    # ─── Filter 2: Ignore groups and broadcasts ────────────────────
+    if "@g.us" in remote_jid:
+        logger.info(f"[FILTER] Ignored group message from {remote_jid}")
+        return {"status": "ignored_group"}
+
+    if "@broadcast" in remote_jid or "status@" in remote_jid:
+        return {"status": "ignored_broadcast"}
+
+    # Only accept normal WhatsApp DMs (@s.whatsapp.net)
+    if "@s.whatsapp.net" not in remote_jid:
+        logger.info(f"[FILTER] Ignored non-DM JID: {remote_jid}")
+        return {"status": "ignored_non_dm"}
+
+    phone = remote_jid.replace("@s.whatsapp.net", "")
 
     # Extract text from different message types
     text = (
@@ -48,6 +67,16 @@ async def whatsapp_webhook(request: Request):
 
     if not text:
         return {"status": "no_text"}
+
+    # ─── Filter 3: Referral tag gating ─────────────────────────────
+    if not is_verified(phone):
+        tag = check_referral_tag(text)
+        if tag:
+            verify(phone)
+            logger.info(f"[VERIFIED] New lead {phone} entered via tag {tag}")
+        else:
+            logger.info(f"[FILTER] Ignored unverified {phone}: {text[:60]}")
+            return {"status": "ignored_unverified"}
 
     logger.info(f"[WEBHOOK] {phone}: {text[:80]}")
     await process_message(phone, text)
