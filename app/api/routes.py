@@ -3,7 +3,10 @@ from fastapi import APIRouter, Request, HTTPException
 from app.services.pipeline import process_message
 from app.services.whatsapp import send_text
 from app.core.config import settings, business
-from app.core.leads import is_verified, verify, check_referral_tag, init_verified
+from app.core.leads import (
+    is_active, is_known, verify, pause, check_referral_tag,
+    is_done_keyword, init_verified,
+)
 
 logger = logging.getLogger("glam-bot")
 router = APIRouter()
@@ -68,15 +71,42 @@ async def whatsapp_webhook(request: Request):
     if not text:
         return {"status": "no_text"}
 
-    # ─── Filter 3: Referral tag gating ─────────────────────────────
-    if not is_verified(phone):
-        tag = check_referral_tag(text)
-        if tag:
-            verify(phone)
-            logger.info(f"[VERIFIED] New lead {phone} entered via tag {tag}")
+    # ─── Filter 3: Lead-state gating ───────────────────────────────
+    # Tag check happens first: a valid tag either wakes a paused lead
+    # or admits a fresh one.
+    tag = check_referral_tag(text)
+
+    if tag:
+        verify(phone)
+        if is_known(phone):
+            logger.info(f"[RESUMED] Lead {phone} re-engaged via tag {tag}")
         else:
-            logger.info(f"[FILTER] Ignored unverified {phone}: {text[:60]}")
-            return {"status": "ignored_unverified"}
+            logger.info(f"[VERIFIED] New lead {phone} entered via tag {tag}")
+    elif not is_active(phone):
+        # No tag AND not currently active → silently drop.
+        # Covers: unverified strangers + paused leads (Fatima is handling them)
+        logger.info(f"[FILTER] Ignored inactive {phone}: {text[:60]}")
+        return {"status": "ignored_inactive"}
+
+    # ─── Filter 4: DONE keyword → pause bot, hand off to Fatima ────
+    if is_done_keyword(text):
+        from app.services.whatsapp import notify_owner
+        await send_text(
+            phone,
+            "Perfect! Your order is on its way 🎉\n\n"
+            f"{business.get('owner_name', 'Fatima')} will reach out personally "
+            "to confirm payment and finalize everything.\n\n"
+            "Thank you for choosing us! ✨"
+        )
+        await notify_owner(
+            f"🟢 *Lead ready for handoff*\n\n"
+            f"📞 Phone: {phone}\n"
+            f"💬 They said: \"{text}\"\n\n"
+            f"Bot is now paused. Take it from here."
+        )
+        pause(phone)
+        logger.info(f"[PAUSED] {phone} confirmed done. Bot handed off.")
+        return {"status": "paused"}
 
     logger.info(f"[WEBHOOK] {phone}: {text[:80]}")
     await process_message(phone, text)

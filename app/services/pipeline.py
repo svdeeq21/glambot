@@ -215,8 +215,10 @@ async def handle_collect_name(phone: str, text: str, session: dict):
         f"💄 Service: {service}\n"
         f"📅 Date: {date}\n"
         f"━━━━━━━━━━━━━━━\n\n"
-        f"We'll send a confirmation once {business.get('owner_name', 'the team')} reviews your booking.\n\n"
-        f"A *50% deposit* is required to secure your slot. Payment details will be sent with your confirmation.\n\n"
+        f"A *50% deposit* is required to secure your slot.\n\n"
+        f"👉 Reply *DONE* to confirm your order. "
+        f"{business.get('owner_name', 'Fatima')} will then reach out personally "
+        f"with payment details and finalize everything.\n\n"
         f"See you soon! ✨"
     )
 

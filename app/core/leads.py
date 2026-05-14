@@ -1,30 +1,49 @@
 """
-Tracks which phone numbers have been "verified" through a referral tag.
-Once verified, all subsequent messages from them get processed normally.
+Tracks the state of each phone number that interacts with the bot.
 
-For production: swap this in-memory set with Redis or Supabase.
+States:
+  - "active" → bot engages normally
+  - "paused" → bot stays silent (Fatima has taken over)
+
+Lifecycle:
+  unverified --[valid tag]-->  active
+  active     --[DONE]-->       paused
+  paused     --[valid tag]-->  active   (re-entry via ad link)
+
+For production: swap this in-memory dict with Redis or Supabase.
 """
 
 from app.core.config import business
 
-_verified: set[str] = set()
+# {phone: "active" | "paused"}
+_leads: dict[str, str] = {}
 
 
 def init_verified():
-    """Pre-load whitelist numbers as verified leads on startup."""
+    """Pre-load whitelist numbers as active leads on startup."""
     whitelist = business.get("whitelist", []) or []
     for number in whitelist:
-        _verified.add(str(number))
+        _leads[str(number)] = "active"
 
 
-def is_verified(phone: str) -> bool:
-    """Check if a phone number is already a verified lead."""
-    return phone in _verified
+def is_active(phone: str) -> bool:
+    """Bot should respond to this phone right now."""
+    return _leads.get(phone) == "active"
+
+
+def is_known(phone: str) -> bool:
+    """Phone has been seen before (active OR paused)."""
+    return phone in _leads
 
 
 def verify(phone: str):
-    """Mark a phone number as a verified lead."""
-    _verified.add(phone)
+    """Mark a phone as active. Bot engages."""
+    _leads[phone] = "active"
+
+
+def pause(phone: str):
+    """Pause bot for this phone. Fatima takes over manually."""
+    _leads[phone] = "paused"
 
 
 def check_referral_tag(text: str) -> str | None:
@@ -38,3 +57,18 @@ def check_referral_tag(text: str) -> str | None:
         if tag.upper() in text_upper:
             return tag
     return None
+
+
+def is_done_keyword(text: str) -> bool:
+    """
+    Customer wants to finish. Triggers bot handoff to Fatima.
+    Triggered by 'DONE', 'CONFIRM', 'COMPLETE', 'CHECKOUT' (case-insensitive).
+    """
+    keywords = {"done", "confirm", "complete", "checkout"}
+    text_clean = text.strip().lower()
+    if text_clean in keywords:
+        return True
+    words = text_clean.split()
+    if len(words) <= 2 and any(w in keywords for w in words):
+        return True
+    return False
